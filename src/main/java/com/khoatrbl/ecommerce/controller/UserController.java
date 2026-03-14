@@ -30,16 +30,6 @@ public class UserController {
         this.userMapper = userMapper;
     }
 
-    @PostMapping
-    public ResponseEntity<UserDto> registerUser(@Valid @RequestBody RegisterUserRequestDto registerUserRequestDto) {
-        RegisterUserRequest request = userMapper.toRequest(registerUserRequestDto);
-
-        User registeredUser = userService.registerUser(request);
-        UserDto userDto = userMapper.toDto(registeredUser);
-
-        return new ResponseEntity<>(userDto, HttpStatus.CREATED);
-    }
-
     @GetMapping
     public ResponseEntity<List<UserDto>> listAllUsers() {
         List<User> users = userService.listAllUsers();

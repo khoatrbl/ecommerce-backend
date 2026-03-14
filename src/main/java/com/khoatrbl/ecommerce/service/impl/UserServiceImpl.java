@@ -6,9 +6,11 @@ import com.khoatrbl.ecommerce.domain.RegisterUserRequest;
 import com.khoatrbl.ecommerce.domain.entities.User;
 import com.khoatrbl.ecommerce.domain.entities.UserRole;
 import com.khoatrbl.ecommerce.exceptions.PasswordNotMatchException;
+import com.khoatrbl.ecommerce.exceptions.UserAlreadyExistException;
 import com.khoatrbl.ecommerce.exceptions.UserNotFoundException;
 import com.khoatrbl.ecommerce.repositories.UserRepository;
 import com.khoatrbl.ecommerce.service.UserService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -20,19 +22,27 @@ import java.util.UUID;
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public User registerUser(RegisterUserRequest request) {
+        if (userExistByUsername(request.username())) {
+            throw new UserAlreadyExistException(request.username());
+        }
+
         Instant now = Instant.now();
+
+        String hashedPassword = passwordEncoder.encode(request.password());
 
         User user = User.builder()
                 .userId(null)
                 .username(request.username())
-                .password(request.password())
+                .password(hashedPassword)
                 .role(UserRole.USER)
                 .displayName(request.displayName())
                 .street(request.street())
@@ -88,5 +98,7 @@ public class UserServiceImpl implements UserService {
         return Objects.equals(passwordA, passwordB);
     }
 
-
+    private boolean userExistByUsername(String username) {
+        return userRepository.findByUsername(username).isPresent();
+    }
 }

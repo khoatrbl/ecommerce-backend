@@ -2,10 +2,13 @@ package com.khoatrbl.ecommerce.controller;
 
 import com.khoatrbl.ecommerce.domain.dto.ErrorDto;
 import com.khoatrbl.ecommerce.exceptions.PasswordNotMatchException;
+import com.khoatrbl.ecommerce.exceptions.UserAlreadyExistException;
 import com.khoatrbl.ecommerce.exceptions.UserNotFoundException;
+import org.apache.coyote.Response;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -45,6 +48,25 @@ public class GlobalExceptionHandler {
         ErrorDto errorDto = new ErrorDto(errorMessage);
 
         return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(UserAlreadyExistException.class)
+    public ResponseEntity<ErrorDto> handleUserAlreadyExistException(UserAlreadyExistException e) {
+
+        String errorMessage = String.format("User with username '%s' already exists.", e.getUsername());
+
+        ErrorDto errorDto = new ErrorDto(errorMessage);
+
+        return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorDto> handleBadCredentialsException(BadCredentialsException e) {
+        ErrorDto errorDto = new ErrorDto("Incorrect username or passwords");
+
+        return new ResponseEntity<>(errorDto, HttpStatus.UNAUTHORIZED);
+
+
     }
 
 }
